@@ -21,12 +21,14 @@ def run_sa_learn(args=None):
         raise ValueError('Must have argument')
 
     if isinstance(args, list):
-        arguments = ' '.join(args)
+        arguments = args
     elif not isinstance(args, str):
         raise TypeError('Must have string or list argument')
+    else:
+        arguments = args.split(' ')
 
     try:
-        proc = subprocess.Popen([settings.SA_LEARN, args])
+        proc = subprocess.Popen([settings.SA_LEARN, arguments])
         (out, err) = proc.communicate()
         rc = proc.returncode
     except(IOError, OSError), e:
