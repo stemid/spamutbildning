@@ -26,7 +26,7 @@ def run_sa_learn(args=None):
         raise TypeError('Must have string or list argument')
 
     try:
-        proc = subprocess.Popen('%s %s' % (settings.SA_LEARN, args))
+        proc = subprocess.Popen([settings.SA_LEARN, args])
         (out, err) = proc.communicate()
         rc = proc.returncode
     except(IOError, OSError), e:
