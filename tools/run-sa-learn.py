@@ -28,6 +28,7 @@ def run_sa_learn(args=None):
         arguments = '%s %s' % (settings.SA_LEARN, str(args))
 
     try:
+        print arguments
         proc = subprocess.Popen(
             arguments,
             stdin = subprocess.PIPE,
