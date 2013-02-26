@@ -6,6 +6,7 @@
 
 from os import path
 from sys import stderr, exit, path as pythonpath
+from datetime import datetime
 import subprocess
 import traceback
 
@@ -42,8 +43,32 @@ def run_sa_learn(args=None):
         raise
     except(), e:
         raise
+    else:
+        return (out, err)
+    return False
 
-# First run on spam directory
+# First do backup
+today = datetime.now()
+try:
+    (out, err) = run_sa_learn('--backup')
+except(), e:
+    print >>stderr, str(e)
+    exit(1)
+else:
+    backupFilename = '%s/sadb_%s.txt' % (
+        settings.SA_DB_BACKUP_DIR,
+        today.strftime('%Y-%m-%d.%s')
+    )
+    try:
+        backupFile = open(backupFilename, 'w')
+    except(), e:
+        print >>stderr, str(e)
+        exit(1)
+    else:
+        backupFile.write(out)
+        backupFile.close()
+
+# Run on spam directory
 try:
     run_sa_learn('--spam %s' % settings.SPAM_DIR)
 except(), e:

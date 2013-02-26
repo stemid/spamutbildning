@@ -51,6 +51,7 @@ VALID_FORMATS = [
 # sa-learn program, depending on how you choose to run tools/run-sa-learn.py
 # you can either specify absolute path or relative. 
 SA_LEARN = 'sa-learn'
+SA_DB_BACKUP_DIR = '/var/backups'
 
 # Template for the notification email sent to admins. 
 ADMIN_MSG_TEMPLATE = """Automated message from {systemName}
