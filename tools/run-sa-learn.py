@@ -28,7 +28,12 @@ def run_sa_learn(args=None):
         arguments = '%s %s' % (settings.SA_LEARN, str(args))
 
     try:
-        proc = subprocess.Popen(settings.SA_LEARN, arguments)
+        proc = subprocess.Popen(
+            arguments,
+            stdin = subprocess.PIPE,
+            stdout = subprocess.PIPE,
+            stderr = subprocess.PIPE
+        )
         (out, err) = proc.communicate()
         rc = proc.returncode
     except(IOError, OSError), e:
