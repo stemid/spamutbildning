@@ -1,0 +1,6 @@
+*.pyc
+.*.swp
+logs/*.log
+tmp
+spam
+ham
