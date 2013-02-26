@@ -43,14 +43,14 @@ def run_sa_learn(args=None):
 
 # First run on spam directory
 try:
-    run_sa_learn(['--spam', settings.SPAM_DIR])
+    run_sa_learn('--spam %s' % settings.SPAM_DIR)
 except(), e:
     print >>stderr, str(e)
     exit(1)
 
 # Then ham dir
 try: 
-    run_sa_learn(['--ham', settings.HAM_DIR])
+    run_sa_learn('--ham %s' % settings.HAM_DIR)
 except(), e:
     print >>stderr, str(e)
     exit(1)
