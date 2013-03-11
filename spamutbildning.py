@@ -75,6 +75,9 @@ def main(f=None):
     l.info('Received email: from[%s], subject[%s]' % (inMail.get('from'),
                                                       inMail.get('subject')))
 
+    # Get original sender address
+    originalSender = inMail.get('from')
+
     # First find out if it's a command from an admin, and act on that.
     # TODO: Dynamic command definitions
     if (inMail.get('Subject').startswith('!HAM ') or
@@ -111,7 +114,7 @@ def main(f=None):
         # Only proceed if the payload is in a valid format.
         if p.get_content_type() in settings.VALID_FORMATS:
             try:
-                sendAdminMail(settings.ADMINS, p)
+                sendAdminMail(settings.ADMINS, p, originalSender)
             except(AdminError), e:
                 l.critical('Admin error: %s' % str(e))
 
@@ -119,7 +122,10 @@ def main(f=None):
 
 # This handles processing of the candidate payloads 
 # and notifications to admins. 
-def sendAdminMail(rcpts=None, payload=None):
+def sendAdminMail(rcpts=None, payload=None, sender=None):
+    if not sender:
+        sender = 'Unknown'
+
     # Create temporary file for incomming email
     try:
         emailFile = mkstemp(
@@ -168,6 +174,7 @@ def sendAdminMail(rcpts=None, payload=None):
     adminMessage = settings.ADMIN_MSG_TEMPLATE.format(
         systemName=settings.SYSTEM_NAME,
         tmpmailID=tmpSuffix,
+        senderAddress=sender,
         attachmentFormats=', '.join(settings.VALID_FORMATS),
         admins=', '.join(settings.ADMINS)
     )

@@ -8,3 +8,5 @@ It runs sa-learn --ham and --spam on these dirs, depending on which is which.
 For archiving reasons the run-sa-learn.py tool does not delete spam/ham after processing. 
 
 Sa-learn will not re-learn already learned mails, unless run with --forget. I do this with a separate crontab in order to archive the mails for a certain number of months. 
+
+Must create the directory sadb\_backups in project root for this tool to take backups of the SA db before every run. 
