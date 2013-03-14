@@ -77,17 +77,19 @@ def main(f=None):
     # First find out if it's a command from an admin, and act on that.
     if inMail.get('Subject').startswith('!'):
         sentCommand = inMail.get('Subject').split()[0].lstrip('!')
-    if sentCommand in settings.VALID_COMMANDS:
-        l.debug('Found admin command in subject: %s' % inMail.get('Subject'))
-        try:
-            procAdminCmd(inMail)
-        except(AdminError), e:
-            l.critical('Admin exception: %s' % str(e))
-            return False
-        else:
-            return True
-        
-        l.debug('Admin command did not pan out, proceeding')
+        if sentCommand in settings.VALID_COMMANDS:
+            l.debug(
+                'Found admin command in subject: %s' % inMail.get('Subject')
+            )
+            try:
+                procAdminCmd(inMail)
+            except(AdminError), e:
+                l.critical('Admin exception: %s' % str(e))
+                return False
+            else:
+                return True
+            
+            l.debug('Admin command did not pan out, proceeding')
 
     # If it's not multipart at this point, simply give up.
     # Admins are allowed to send non-multipart commands. 
@@ -133,8 +135,7 @@ def sendAdminMail(rcpts=None, payload=None, sender=None):
         emailFile = os.fdopen(emailFile[0], 'wb')
     except(OSError, IOError), e:
         raise AdminError('Could not create temporary email file: %s' % str(e))
-        return False
-    finally:
+    else:
         l.debug('Created temporary suffix ID for email: %s' % tmpSuffix)
 
     # Write payload to tmpfile. This should include all 
@@ -189,9 +190,9 @@ def sendAdminMail(rcpts=None, payload=None, sender=None):
         )
         smtp.quit()
     except(smtplib.SMTPException), e:
+        l.critical('Could not send email')
         raise AdminError('SMTP Exception: %s' % str(e))
-        return False
-    finally:
+    else:
         l.info('Email sent to admins: %s' % ', '.join(settings.ADMINS))
 
     return True
@@ -222,7 +223,11 @@ def procAdminCmd(e=None):
     if senderEmail.lower() in settings.ADMINS:
         # Extract command from subject
         try:
-            m = re.search('!(SPAM|HAM|DELETE)\s+([A-Za-z0-9_]+)', e.get('subject'))
+            # TODO: Fix this with dynamic commands list VALID_COMMANDS
+            m = re.search(
+                '!(SPAM|HAM|DELETE)\s+([A-Za-z0-9_]+)', 
+                e.get('subject')
+            )
             cmd = m.group(1)
             arg = m.group(2)
             l.debug('Extracted cmd[%s], arg[%s]' % (cmd, arg))
