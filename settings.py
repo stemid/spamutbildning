@@ -3,11 +3,7 @@
 from os import geteuid, getegid
 from os.path import join, abspath, dirname
 
-# Helpful functions for relative paths, ignore them!
-here = lambda *x: join(abspath(dirname(__file__)), *x)
-WORKING_ROOT = here('.')
-root = lambda *x: join(abspath(WORKING_ROOT), *x)
-# End of helpful functions, please stop ignoring things now!
+### Everything below this line should be set ###
 
 # Information about this mail system
 SYSTEM_NAME = 'My system'
@@ -17,12 +13,23 @@ SYSTEM_SUBJECT = 'New spam candidate: {spamID}'
 SYSTEM_SMTPHOST = 'localhost'
 
 # People allowed to send commands.
-# Also people who receive notifications of new mail and, in the 
-# future, critical log records. 
+# Also people who receive notifications of new mail 
 # This is matched against Lower Case when an admin mail arrives. 
 ADMINS = [
     'admin@domain.tld',
 ]
+
+# sa-learn program, depending on how you choose to run tools/run-sa-learn.py
+# you can either specify absolute path or relative. 
+SA_LEARN = 'sa-learn'
+
+### Everything above this line should be set ###
+
+# Helpful functions for relative paths, ignore them!
+here = lambda *x: join(abspath(dirname(__file__)), *x)
+WORKING_ROOT = here('.')
+root = lambda *x: join(abspath(WORKING_ROOT), *x)
+# End of helpful functions, please stop ignoring things now!
 
 # Logfile
 LOG_DIR = root('logs')
@@ -32,6 +39,7 @@ LOG_MAX_COPIES = 5
 LOG_FORMAT = '%(asctime)s %(filename)s[%(process)s] %(levelname)s: %(message)s'
 
 # These will be automagically created if they do not exist
+SA_DB_BACKUP_DIR = root('sadb_backups')
 TMP_DIR = root('tmp')
 SPAM_DIR = root('spam')
 HAM_DIR = root('ham')
@@ -48,10 +56,12 @@ VALID_FORMATS = [
     'message/rfc822',
 ]
 
-# sa-learn program, depending on how you choose to run tools/run-sa-learn.py
-# you can either specify absolute path or relative. 
-SA_LEARN = 'sa-learn'
-SA_DB_BACKUP_DIR = root('sadb_backups')
+# Recognized admin commands
+VALID_COMMANDS = [
+    'HAM',
+    'SPAM',
+    'DELETE'
+]
 
 # Template for the notification email sent to admins. 
 ADMIN_MSG_TEMPLATE = """Automated message from {systemName}

@@ -37,31 +37,27 @@ def main(f=None):
         fObject = stdin
 
     # Initialize our working environment
-    if initDir(
-        settings.TMP_DIR, 
-        settings.PROC_EUID, 
-        settings.PROC_EGID, 
-        0750
-    ) is False:
-        l.critical('Failed to init working dir: %s' % settings.TMP_DIR)
-        return False
-
-    if initDir(
-        settings.SPAM_DIR, 
-        settings.PROC_EUID, 
-        settings.PROC_EGID, 
-        0750
-    ) is False:
-        l.critical('Failed to init working dir: %s' % settings.SPAM_DIR)
-        return False
-
-    if initDir(
-        settings.HAM_DIR, 
-        settings.PROC_EUID, 
-        settings.PROC_EGID, 
-        0750
-    ) is False:
-        l.critical('Failed to init working dir: %s' % settings.HAM_DIR)
+    try:
+        initDir(
+            settings.TMP_DIR, 
+            settings.PROC_EUID, 
+            settings.PROC_EGID, 
+            0750
+        )
+        initDir(
+            settings.SPAM_DIR, 
+            settings.PROC_EUID, 
+            settings.PROC_EGID, 
+            0750
+        )
+        initDir(
+            settings.HAM_DIR, 
+            settings.PROC_EUID, 
+            settings.PROC_EGID, 
+            0750
+        )
+    except(), e:
+        l.critical('Could not initialize working environment: %s' % str(e))
         return False
     # Finished setting up working directories
 
@@ -79,17 +75,17 @@ def main(f=None):
     originalSender = inMail.get('from')
 
     # First find out if it's a command from an admin, and act on that.
-    # TODO: Dynamic command definitions
-    if (inMail.get('Subject').startswith('!HAM ') or
-        inMail.get('Subject').startswith('!SPAM ') or
-        inMail.get('Subject').startswith('!DELETE ')):
+    if inMail.get('Subject').startswith('!'):
+        sentCommand = inMail.get('Subject').split()[0].lstrip('!')
+    if sentCommand in settings.VALID_COMMANDS:
         l.debug('Found admin command in subject: %s' % inMail.get('Subject'))
         try:
-            if procAdminCmd(inMail):
-                return True
+            procAdminCmd(inMail)
         except(AdminError), e:
-            l.critical('Caught administrative exception: %s' % str(e))
+            l.critical('Admin exception: %s' % str(e))
             return False
+        else:
+            return True
         
         l.debug('Admin command did not pan out, proceeding')
 
@@ -213,7 +209,6 @@ def procAdminCmd(e=None):
 
     if e is None:
         raise AdminError('Squawk! Polly shouldn\'t be!')
-        return False
 
     # First extract the sender mail address
     try:
@@ -222,7 +217,6 @@ def procAdminCmd(e=None):
         l.debug('Found sender email: %s' % senderEmail)
     except(re.error, IndexError), e:
         raise AdminError('Malformed sender address: %s' % str(e))
-        return False
 
     # Do we have an admin?
     if senderEmail.lower() in settings.ADMINS:
@@ -234,10 +228,9 @@ def procAdminCmd(e=None):
             l.debug('Extracted cmd[%s], arg[%s]' % (cmd, arg))
         except(re.error, IndexError), e:
             raise AdminError('Malformed command: %s' % str(e))
-            return False
 
     if arg == '':
-        return False
+        raise AdminError('No argument in Admin mail')
 
     if cmd == 'SPAM':
         try:
@@ -258,10 +251,8 @@ def procAdminCmd(e=None):
                 settings.SPAM_PREFIX,
                 arg
             ))
-            return True
         except(OSError), e:
             raise AdminError('Move file: %s: %s' % (arg, str(e)))
-            return False
 
     if cmd == 'HAM':
         try:
@@ -282,10 +273,8 @@ def procAdminCmd(e=None):
                 settings.TMP_PREFIX,
                 arg
             ))
-            return True
         except(OSError), e:
             raise AdminError('Move file: %s: %s' % (arg, str(e)))
-            return False
 
     if cmd == 'DELETE':
         try:
@@ -299,13 +288,8 @@ def procAdminCmd(e=None):
                 settings.TMP_PREFIX,
                 arg
             ))
-            return True
         except(OSError), e:
             raise AdminError('Delete file: %s: %s' % (arg, str(e)))
-            return False
-
-    # Return false and proceed with execution by default
-    return False
 
 # Helper function to create directories
 def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
@@ -313,14 +297,12 @@ def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
     try:
         dirStat = os.stat(d)
     except(OSError, IOError), e:
-        l.info('Directory does not exist or is unreadable: %s' % d)
         # Try creating dir
         try:
             os.mkdir(d, dirmode)
         except(OSError, IOError), e:
-            l.critical('Could not create directory: %s' % (d, str(e)))
-            return False
-        finally:
+            raise
+        else:
             dirStat = os.stat(d)
 
     # Check its permissions
@@ -328,15 +310,9 @@ def initDir(d=None, dirowner=0, dirgroup=0, dirmode=0000):
         try:
             os.chown(d, dirowner, dirgroup)
         except(OSError, IOError), e:
-            l.critical('Could not set owner of directory: %s: %s' %
-                       (d, str(e)))
-            return False
-    return True
+            raise
 
 # Admin exception for procAdminCmd() function
-# I really only wanted the main() execution to proceed so 
-# I used an exception for this. A more dynamic return value
-# could have worked too. 
 class AdminError(Exception):
     def __init__(self, errstr):
         self.errstr = errstr

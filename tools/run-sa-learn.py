@@ -15,6 +15,7 @@ parentdir = path.dirname(path.dirname(path.abspath(__file__)))
 pythonpath.insert(0,parentdir)
 
 import settings
+from spamutbildning import initDir
 
 # Wrapper to run sa-learn
 def run_sa_learn(args=None):
@@ -23,6 +24,7 @@ def run_sa_learn(args=None):
 
     arguments = []
     arguments.append(settings.SA_LEARN)
+
     if isinstance(args, list):
         arguments.extend(args)
     elif not isinstance(args, str):
@@ -49,6 +51,19 @@ def run_sa_learn(args=None):
 
 # First do backup
 today = datetime.now()
+
+# Create SADB backup dir if it doesn't exist
+try:
+    initDir(
+        settings.SA_DB_BACKUP_DIR,
+        settings.PROC_EUID,
+        settings.PROC_EGID,
+        0750
+    )
+except(), e:
+    print >>stderr, str(e)
+    exit(1)
+
 try:
     (out, err) = run_sa_learn('--backup')
 except(), e:
