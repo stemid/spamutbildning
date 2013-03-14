@@ -3,7 +3,7 @@
 from os import geteuid, getegid
 from os.path import join, abspath, dirname
 
-### Everything below this line should be set ###
+### Everything below this line should be configured ###
 
 # Information about this mail system
 SYSTEM_NAME = 'My system'
@@ -23,7 +23,7 @@ ADMINS = [
 # you can either specify absolute path or relative. 
 SA_LEARN = 'sa-learn'
 
-### Everything above this line should be set ###
+### Everything above this line should be configured ###
 
 # Helpful functions for relative paths, ignore them!
 here = lambda *x: join(abspath(dirname(__file__)), *x)
