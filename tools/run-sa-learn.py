@@ -65,6 +65,7 @@ except(), e:
     exit(1)
 
 try:
+    run_sa_learn('--sync')
     (out, err) = run_sa_learn('--backup')
 except(), e:
     print >>stderr, str(e)
